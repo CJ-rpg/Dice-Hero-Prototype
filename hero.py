@@ -1,7 +1,10 @@
 import numpy as np
+import random as r
+import inspect
+
 
 class Hero(object):
-    def init(self):
+    def __init__(self):
         self._dice = [
             {"num": 1, "symbol": "sword"},
             {"num": 2, "symbol": "sword"},
@@ -10,56 +13,110 @@ class Hero(object):
             {"num": 5, "symbol": "heart"},
             {"num": 6, "symbol": "pow"},
         ]
-    
-    def traverse(self, function=print):
-        for j in range(len(self._dice)):
-            function(self._dice[j])
 
-    def smack(self):
-        print("3 sword or 4 sword or 5 sword")
-        print("deal 4 dmg for 3 swords, 6 dmg for 4 swords, 8, dmg for 5 swords")
-        #dmg = 4 or 6 or 10
+        self._abilities = {
+            "smack": {
+                "requirement": "3/4/5 swords",
+                "description": "Deal 4/6/8 damage"
+                #possibly add later on
+                #"function": self.smack
+            },
+            "fortitude": {
+                "requirement": "3/4/5 hearts",
+                "description": "Heal 4/5/6 health"
+            },
+            "SturdyBlow": {
+                "requirement": "2 swords + 2 pow",
+                "description": "Deal 4 undefendable damage"
+            },
+            "overpower": {
+                "requirement": "3 swords + 2 pow",
+                "description": "Roll 3 dice and deal their total. Concussion on 14+"
+            },
+            "mightyBlow": {
+                "requirement": "small straight",
+                "description": "deal 9 damage"
+            },
+            "Reckless": {
+                "requirement": "large straight",
+                "description": "deal 15 damage. recieve 4 damage back if any damage is successfully dealt"
+            },
+            "CritBash": {
+                "requirement": "4 pow",
+                "description": "inflict stun then deal 5 undefendable damage"
+            },
+            "Rage": {
+                "requirement": "5 pow",
+                "description": "Ultimate! (dice may be altered to prevent an ultimate. " \
+                    "otherwise, no action of any kind may be performed by any opponent until the ability fully completes)." \
+                    "inflict stun then deal 15 damage"
+            }
+        }
+    def show_abilities(self):
+        for name, info in self._abilities.items():
+            print(f"\n{name}")
+            print(f"Requirement: {info['requirement']}")
+            print(f"Effect: {info['description']}")
+
+    def smack(self, swords):
+        dmg = {
+        3: 4,
+        4: 6,
+        5: 8
+        }[swords]
+
+        print(f"Smack deals {dmg} damage")
     
-    def fortitude(self):
-        print("3 heart or 4 heart or 5 heart")
-        print(" heal 4 for 3 hearts, 5 for 4 hearts, 6 for 5 hearts")
-        #heal = 4 or 5 or 6
+    def fortitude(self, hearts):
+        heal = {
+        3: 4,
+        4: 5,
+        5: 6
+        }[hearts]
+
+        print(f"fortitude heals {heal} health")
 
     def sturdyBlow(self):
-        print("2 sword 2 pow")
-        print("deal 4 undefendablee dmg")
-        #dmg = 4
+        dmg = 4
+        print(f"sturdy blow deals {dmg} undefendable damage")
 
     def overpower(self):
-        print("3 swords 2 pow")
-        print("roll 3 dice: the deal dmg equal to the total roll value. if the roll value is at least 14, inflict concussion.")
-        #dmg = 15
-        #inflict = concussion
+        dmg = 0
+        rolls = [r.choice(self._dice) for _ in range(3)]
+        for die in rolls:
+            print(f"{die['num']} - {die['symbol']}")
+        nums = [die["num"] for die in rolls]
+        for num in nums:
+            dmg = dmg + num
+        if dmg >= 14:
+            inflict = "concussion"
+            print(f"overpower deals {dmg} damage and inflicts {inflict}")
+        else:
+            print(f"overpower deals {dmg} damage")
 
     def mightyBlow(self):
-        print("small straight")
-        print("deal 9 dmg")
-        #dmg = 9
+        dmg = 9
+        print(f"mighty blow deals {dmg} damage")
 
     def reckless(self):
-        print ("large straight")
-        print("deal 15 dmg, recieve 4 dmg in return. (return dmg only applies if at least 1 dmg was dealt successfully)")
-        #dmg = 15
-        #selfdmg = 4
+        dmg = 15
+        selfdmg = 4
+        print(f"reckless deals {dmg} damage if any damage is dealt sucessfully you take {selfdmg} in return")
 
     def critBash(self):
-        print("4 pow")
-        print("inflict Stun Then deal 5 undefendable dmg")
-        #inflict = stun
-        # #dmg = 5
+        inflict = "stun"
+        dmg = 5
+        print(f"crit bash inflicts {inflict} then deals {dmg} undefendable damage")
 
-    def thickSkin(self):
-        print("Defense roll 3 dice. heal 2 * heart")
-        #heal = 2 * hearts
+    #possibly include heart parameter
+    def thickSkin(self, description=True):
+        if description == True:
+            print("Defense roll 3 dice. heal 2 * heart")
+        else:
+            print("doing attack")
+            #heal = 2 * hearts
 
     def rage(self):
-        print("Ultimate! (dice may be altered to prevent an ultimate. " \
-        "otherwise, no action of any kind may be performed by any opponent until the ability fully completes). 5 pow")
-        print("inflict Stun deal 15 dmg")
-        #inflict = stun
-        #dmg = 5
+        dmg = 15
+        inflict = "stun"
+        print(f"rage inflicts {inflict} then deals {dmg} undefendable damage")
