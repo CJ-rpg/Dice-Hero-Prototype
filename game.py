@@ -1,44 +1,67 @@
-import inspect
 from collections import Counter
-from hero import Hero
-
-#from dice import roll_hand
-
-#class Game:
-
-#    def start(self):
-
-#        hero = Hero()
-
-#        rolls = roll_hand()
-
-#        print(rolls)
+from barbarian import Barbarian
+from dice import has_large_straight, has_small_straight
 import random as r
 
-hero = Hero()
 
-nums = []
-symbols = []
-valid_abilities = []
-symbol_counts = 0
+class Game:
+
+    def __init__(self):
+        self.hero = Barbarian()
+        self.rolls = []
+        self.valid_abilities = []
+
+    def start(self):
+        self.hero.show_abilities()
+        attempts = 0
+
+        self.rolls = [r.choice(self.hero._dice) for _ in range(5)]
+        self.show_rolls()
+
+        while attempts < 2:
+            self.valid_abilities, symbol_counts = check_abilities(self.hero, self.rolls)
+
+            for i in range(len(self.rolls)):
+                reroll = input(f"Would you like to reroll {self.rolls[i]}? (y/n) ")
+
+                if reroll.lower() == "y":
+                    self.rolls[i] = r.choice(self.hero._dice)
+
+            self.show_rolls()
+
+            self.valid_abilities, symbol_counts = check_abilities(self.hero, self.rolls)
+
+            attempts += 1
+            if attempts < 2:
+                again = input("Continue rerolling? (y/n) ")
+
+                if again.lower() != "y":
+                    break
 
 
-def has_large_straight(nums):
-    return nums == [1,2,3,4,5] or nums == [2,3,4,5,6]
 
-def has_small_straight(nums):
-    unique = sorted(set(nums))
+        choice = int(input("Choose an ability: "))
+        selected = self.valid_abilities[choice - 1]
 
-    return (
-        [1,2,3,4] == unique[:4] or
-        [2,3,4,5] == unique[:4] or
-        [3,4,5,6] == unique[:4] or
-        [1,2,3,4] == unique[-4:] or
-        [2,3,4,5] == unique[-4:] or
-        [3,4,5,6] == unique[-4:]
-    )
+        #self._abilities["smack"]["function"](3)
+        if selected == "smack":
+            self.hero.smack(symbol_counts["sword"])
+        elif selected == "fortitude":
+            self.hero.fortitude(symbol_counts["heart"])
+        else:
+            getattr(self.hero, selected)()
 
-def check_abilities():
+    def player_turn(self):
+        pass
+
+    def attack_phase(self):
+        pass
+
+    def show_rolls(self):
+        for die in self.rolls:
+            print(f"{die['num']} - {die['symbol']}")
+
+def check_abilities(hero, rolls):
     nums = [die["num"] for die in rolls]   
     symbols = sorted(die["symbol"] for die in rolls)
 
@@ -72,47 +95,4 @@ def check_abilities():
             f"{info['description']}"
         )
 
-    return valid_abilities, symbol_counts, nums
-
-hero.show_abilities()
-attempts = 1
-
-rolls = [r.choice(hero._dice) for _ in range(5)]
-for die in rolls:
-    print(f"{die['num']} - {die['symbol']}")
-
-while attempts < 3:
-    valid_abilities, symbol_counts, nums = check_abilities()
-
-    for i in range(len(rolls)):
-        reroll = input(f"Would you like to reroll {rolls[i]}? (y/n) ")
-
-        if reroll.lower() == "y":
-            rolls[i] = r.choice(hero._dice)
-
-    for die in rolls:
-        print(f"{die['num']} - {die['symbol']}")
-
-    valid_abilities, symbol_counts, nums = check_abilities()
-
-    attempts += 1
-    if attempts < 3:
-        again = input("Continue rerolling? (y/n) ")
-
-        if again.lower() != "y":
-            break
-
-
-
-choice = int(input("Choose an ability: "))
-selected = valid_abilities[choice - 1]
-
-#self._abilities["smack"]["function"](3)
-if selected == "smack":
-    hero.smack(symbol_counts["sword"])
-
-elif selected == "fortitude":
-    hero.fortitude(symbol_counts["heart"])
-
-else:
-    getattr(hero, selected)()
+    return valid_abilities, symbol_counts
