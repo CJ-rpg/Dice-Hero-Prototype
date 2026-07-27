@@ -21,3 +21,6 @@ class Hero:
             print(f"\n{name}")
             print(f"Requirement: {info['requirement']}")
             print(f"Effect: {info['description']}")
+
+    def defense(self):
+        pass

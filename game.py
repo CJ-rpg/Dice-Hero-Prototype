@@ -31,32 +31,6 @@ class Game:
         else:
             self.active_player = self.hero
 
-    def decide_first_player(self):
-        while self.active_player is None:
-            hero_roll = r.choice(self.hero._dice)
-            opponent_roll = r.choice(self.opponent._dice)
-
-            print(f"You rolled {hero_roll['num']}")
-            print(f"Opponent rolled {opponent_roll['num']}")
-
-            if hero_roll["num"] > opponent_roll["num"]:
-                self.active_player = self.hero
-                print("You go First")
-            elif opponent_roll["num"] > hero_roll["num"]:
-                self.active_player = self.opponent
-                print("Opponent Goes First")
-            else:
-                print("Tie! Rolling again...")
-            
-    def get_opponent(self):
-        if self.active_player == self.hero:
-            return self.opponent
-        return self.hero
-    
-    def show_rolls(self):
-            for die in self.rolls:
-                print(f"{die['num']} - {die['symbol']}")
-
     def attack_phase(self):
         print(f"{self.active_player.name}'s Turn")
         print(f"Heros Health: {self.hero.health}")
@@ -88,25 +62,62 @@ class Game:
                 if again.lower() != "y":
                     break
 
-
         if self.valid_abilities == []:
             print("Sorry no Valid Abilities")
-            return
+            return 0
         choice = int(input("Choose an ability: "))
         selected = self.valid_abilities[choice - 1]
-
-        #self._abilities["smack"]["function"](3)
+        ability = self.active_player._abilities[selected]
+        
         if selected == "smack":
-            self.active_player.smack(symbol_counts["sword"])
+            result = ability["function"](symbol_counts["sword"])
         elif selected == "fortitude":
-            self.active_player.fortitude(symbol_counts["heart"])
+            result = ability["function"](symbol_counts["heart"])
         else:
-            getattr(self.active_player, selected)()
+            result = ability["function"]()
 
+        if result["heal"]:
+            self.active_player.heal(result["heal"])
+        if result["damage"]:
+            self.resolve_attack(
+                result["damage"],
+                result["defendable"]
+            )
+
+
+    def resolve_attack(self, damage, defendable=True):
         defender = self.get_opponent()
-        defender.take_damage(10)
 
+        defender.take_damage(damage)
+
+        if defendable:
+            defender.defense()
+
+    def decide_first_player(self):
+        while self.active_player is None:
+            hero_roll = r.choice(self.hero._dice)
+            opponent_roll = r.choice(self.opponent._dice)
+
+            print(f"You rolled {hero_roll['num']}")
+            print(f"Opponent rolled {opponent_roll['num']}")
+
+            if hero_roll["num"] > opponent_roll["num"]:
+                self.active_player = self.hero
+                print("You go First")
+            elif opponent_roll["num"] > hero_roll["num"]:
+                self.active_player = self.opponent
+                print("Opponent Goes First")
+            else:
+                print("Tie! Rolling again...")
+            
+    def get_opponent(self):
+        if self.active_player == self.hero:
+            return self.opponent
+        return self.hero
     
+    def show_rolls(self):
+            for die in self.rolls:
+                print(f"{die['num']} - {die['symbol']}")
 
 def check_abilities(hero, rolls):
     nums = [die["num"] for die in rolls]   
